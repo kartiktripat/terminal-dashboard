@@ -33,11 +33,11 @@ This project is a Django-based web application that connects to a PostgreSQL dat
 
 #### State View
 
-![State Data](screenshots/state.png)
+![Terminal Data](screenshots/terminal.png)
 
 #### Terminal Specific View
 
-![Terminal Data](screenshots/terminal.png)
+![State Data](screenshots/state.png)
 
 
 
