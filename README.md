@@ -1,6 +1,6 @@
 # Terminal Dashboard
 
-This project is a Django-based web application that connects to a PostgreSQL database and displays terminal data in tabular and graphical forms. It aims to provide an easy-to-use interface for visualizing and managing terminal data.
+This project is a Django-based web application that connects to a PostgreSQL database and displays terminal data in tabular and graphical forms. It aims to provide an easy-to-use interface for visualizing and managing terminal data. It was developed for the Center for Railway Information Systems, Government of India to diplay information of 3125 freight terminals in the Indian Railways.
 
 ## Features
 
