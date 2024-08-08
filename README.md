@@ -58,7 +58,7 @@ This project is a Django-based web application that connects to a PostgreSQL dat
             'ENGINE': 'django.db.backends.postgresql',
             'NAME': 'terminals',
             'USER': 'kt',
-            'PASSWORD': 'ktsdb1',
+            'PASSWORD': '*****',
             'HOST': 'localhost',
             'PORT': '5432',
         }
