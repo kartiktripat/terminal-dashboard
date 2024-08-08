@@ -19,25 +19,25 @@ This project is a Django-based web application that connects to a PostgreSQL dat
 
 ![Home Screen](screenshots/home.png)
 
-### Terminal Data Graph
+### Terminal Data
 
 ![Terminal Data Graph](screenshots/terminal_data.png)
 
-### State Specific Data
+#### State Specific Data
 
 ![State Specific Data](screenshots/state_specific_data.png)
 
-### Terminal Data
-
-![Terminal Data](screenshots/terminal.png)
-
-### India Data
+### Map : by default shows India View
 
 ![India Data](screenshots/india.png)
 
-### State Data
+#### State View
 
 ![State Data](screenshots/state.png)
+
+#### Terminal Specific View
+
+![Terminal Data](screenshots/terminal.png)
 
 
 
