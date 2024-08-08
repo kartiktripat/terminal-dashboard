@@ -19,13 +19,17 @@ This project is a Django-based web application that connects to a PostgreSQL dat
 
 ![Home Screen](screenshots/home.png)
 
-### Terminal Data
+### Terminal Data Graph
 
-![Terminal Data](screenshots/terminal.png)
+![Terminal Data Graph](screenshots/terminal_data.png)
 
 ### State Specific Data
 
 ![State Specific Data](screenshots/state_specific_data.png)
+
+### Terminal Data
+
+![Terminal Data](screenshots/terminal.png)
 
 ### India Data
 
@@ -34,12 +38,6 @@ This project is a Django-based web application that connects to a PostgreSQL dat
 ### State Data
 
 ![State Data](screenshots/state.png)
-
-
-
-### Terminal Data Graph
-
-![Terminal Data Graph](screenshots/terminal_data.png)
 
 
 
