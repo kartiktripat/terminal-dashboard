@@ -1,0 +1,102 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Terminal Dashboard Home</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #6495ed;
+            background-image: url("{% static 'Indian-Railways2.jpg' %}");
+            background-size: cover;
+            background-blend-mode: multiply;
+            color: white;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            position: relative; /* Positioning for pseudo-element */
+            overflow: hidden; /* Ensure child elements stay within the body */
+        }
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0 ,0 ,0 , 0.5); /* 50% transparent blue layer */
+            z-index: 1; /* Ensure it appears on top of the background image */
+        }
+        .content {
+            position: relative; /* Ensure content is above the overlay */
+            z-index: 2; /* Above the pseudo-element */
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Center content horizontally */
+        }
+        .welcome-message {
+            font-size: 2.5em;
+            margin-bottom: 40px;
+            padding: 20px;
+            background-color: #d22b2b;
+            border-radius: 10px; /* Rounded corners */
+            color: white; /* White text color */
+            font-weight: bold; /* Bold text */
+            text-decoration: none; /* Remove underline from link */
+        }
+        .welcome-message a {
+            text-decoration: none; /* Ensure the link within the welcome message has no underline */
+            color: inherit; /* Inherit the color from the parent element */
+        }
+        .welcome-message:hover {
+            background-color: white; 
+            color: #d22b2b; /* Black text color on hover */
+        }
+        .img-fluid {
+            margin-top: 50px;
+            margin-bottom: 30px; /* Adjusted the margin to add more space */
+            width: 70%; /* Adjust the width as needed */
+        }
+        .btn-container {
+            display: flex;
+            gap: 20px;
+            margin-top: 50px;
+            justify-content: center; /* Center the buttons horizontally */
+        }
+        .btn-custom {
+            font-size: 1.2em;
+            padding: 10px 20px;
+            background-color: #d22b2b; /* Neon yellow background color */
+            color: white; /* Black text color */
+            font-weight: bold; /* Bold text */
+            border: none; /* Remove borders */
+            border-radius: 10px; /* Rounded corners for buttons */
+            text-align: center; /* Center the text */
+            vertical-align: middle; /* Vertically align the text */
+            box-shadow: none; /* Remove any box shadow */
+        }
+        .btn-custom:hover {
+            background-color: white; /* Slightly different color on hover */
+            color: #d22b2b; /* White text color on hover */
+        }
+    </style>
+</head>
+<body>
+    <div class="content">
+        <div class="welcome-message">
+            <a href="{% url 'home' %}">Welcome to the Terminal Dashboard</a>
+        </div>
+        <div class="text-center">
+            <img src="{% static 'logo.png' %}" alt="Train Image" class="img-fluid">
+        </div>
+        <div class="btn-container">
+            <a href="{% url 'display_data' %}" class="btn btn-custom">Terminal Data</a>
+            {% comment %} <a href="{% url 'display_graph' %}" class="btn btn-custom">Comparison of Average Rakes Handling</a> {% endcomment %}
+            <a href="{% url 'map' %}" class="btn btn-custom">Map</a>
+        </div>
+    </div>
+</body>
+</html>

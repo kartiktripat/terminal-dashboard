@@ -1,0 +1,963 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Map</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+    <style>
+        body {
+            background: url('{% static 'Indian-Railways2.jpg' %}') no-repeat center center fixed;
+            background-size: cover;
+            color: white;
+            padding-top: 20px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 0;
+            min-height: 100vh;
+            margin: 0;
+        }
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0 ,0 ,0 , 0.5); /* Transparent blue overlay */
+            z-index: -1;
+        }
+        .navbar {
+            background-color: rgba(0 ,0 ,0 , 0);
+        }
+        .btn {
+            background-color: #d22b2b;
+            color: white;
+            font-weight: bold;
+            padding: 15px;
+            border-radius: 10px;
+            border: none;
+            margin: 5px;
+            text-decoration: none;
+        }
+        .btn:hover {
+            background-color: white;
+            color: #d22b2b;
+        }
+        .heading-box {
+            background-color: white;
+            color: black;
+            font-weight: bold;
+            padding: 13px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 10px auto;
+            margin-top: 0px;
+            margin-bottom: 20px;
+            display: inline-block;
+            font-size: 1.5em;
+            font-weight: bold;
+            width: fit-content;
+            text-decoration: none;
+        }
+        .heading-box a {
+            text-decoration: none;
+            color: inherit;
+        }
+        .heading-box:hover {
+            background-color: black;
+            color: white;
+        }
+        .map-container {
+            display: flex;
+            justify-content: flex-start;
+            flex-grow: 1;
+            margin-left: 20px;
+        }
+        #map {
+            width: 650px;
+            height: 670px;
+            border-radius: 15px;
+            margin-top: 35px;
+            flex-shrink: 0;
+        }
+        .filter-container {
+            display: flex;
+            align-items: center;
+            margin-left: auto;
+        }
+        .filter-container label {
+            margin-right: 10px;
+            margin-bottom: 0;
+        }
+        .filter-container select {
+            width: 200px;
+        }
+        #specific-details {
+            display: flex;
+            flex-wrap: wrap;
+            margin-top: 40px;
+            margin-left: auto;
+            margin-right: 50px;
+            color: black;
+            padding: 20px;
+            border-radius: 15px;
+            width: 650px;
+            height: 260px; /* Adjusted height to match the height of the map */
+            overflow-y: auto;
+            position: absolute;
+            right: 0;
+            justify-content: center; /* Corrected from justify-contents to justify-content */
+            text-align: left;
+            background-color: white; /* Keep the background of the container white */
+            color: black;
+            font-weight: bold;
+            box-sizing: border-box;
+        }
+        
+        .specific-detail-box {
+            flex: 1 1 48%; /* Adjust to fit 2 items per row with some margin */
+            margin: 2px; /* Reduced margin for less space between cells */
+            font-size: 14px; /* Reduced font-size to decrease height */
+            padding: 5px 0; /* Adjusted padding to center text vertically */
+            line-height: 1.2; /* Adjusted line-height for better readability */
+            border-radius: 5px; /* Adjust border-radius if needed */
+            box-sizing: border-box;
+            background-color: white; /* Remove the cell background */
+            text-align: center; /* Center the text */
+        }
+        
+        .terminal-name-box {
+            flex: 1 1 100%; /* Full width for the terminal name */
+            margin: 2px; /* Reduced margin for less space between cells */
+            font-size: 14px; /* Reduced font-size to decrease height */
+            padding: 5px 0; /* Adjusted padding to center text vertically */
+            line-height: 1.2; /* Adjusted line-height for better readability */
+            border-radius: 5px; /* Adjust border-radius if needed */
+            box-sizing: border-box;
+            background-color: white; /* Remove the cell background */
+            text-align: center; /* Center the text */
+        }
+
+        #details-container {
+            display: none; /* Initially hidden */
+            flex-wrap: wrap;
+            margin-top: 40px;
+            margin-left: auto;
+            margin-right: 50px;
+            color: black;
+            padding: 0px;
+            border-radius: 15px;
+            width: 320px;
+            height: 260px; /* Adjusted height to match the height of the map */
+            overflow-y: auto;
+            position: absolute;
+            left: 740px;
+            justify-content: center; /* Corrected from justify-contents to justify-content */
+            text-align: left;
+            background-color: white; /* Keep the background of the container white */
+            color: black;
+            font-weight: bold;
+            box-sizing: border-box;
+        }
+
+        #pie-chart-container {
+            display: none; /* Initially hidden */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-top: 40px;
+            margin-left: auto;
+            margin-right: 50px;
+            color: black;
+            padding: 20px;
+            border-radius: 15px;
+            width: 320px;
+            height: 260px; /* Adjusted height to match the height of the map */
+            overflow-y: auto;
+            position: absolute;
+            right: 0;
+            background-color: white; /* Keep the background of the container white */
+            color: black;
+            font-weight: bold;
+            box-sizing: border-box;
+        }
+        
+        #bar-chart-container {
+            width: calc(100% - 80px); /* Dynamic width considering both left and right margins */
+            max-width: 650px; /* Maximum width to avoid overflow */
+            height: 340px; /* Fixed height */
+            margin: 2px; /* Margin similar to terminal details */
+            margin-left: 30px; /* Adjust to start from the right of the map */
+            margin-bottom: 10px;
+            margin-top: 365px;
+            background-color: white; /* Same background as terminal details */
+            border-radius: 15px; /* Same border radius */
+            padding: 10px; /* Similar padding for consistency */
+            box-sizing: border-box;
+            position: absolute; /* Absolute positioning */
+            right: 50px; /* Fixed right position to add margin on the right side */
+        }
+        #bar-chart {
+            width: 100%;
+            height: 100%;
+        }
+
+        .earnings-btn {
+            width: 200px;
+            position: absolute;
+            top: calc(50% + 8px); /* Center vertically between the box and the chart */
+            left: calc(50% + 120px);
+            transform: translate(-50%, -50%);
+            background-color: #d22b2b;
+            color: white;
+            font-weight: bold;
+            padding: 15px 20px; /* Adjusted padding for better text fitting */
+            border-radius: 10px;
+            border: none;
+            text-decoration: none;
+        }
+        .earnings-btn:hover {
+            background-color: white;
+            color: #d22b2b;
+        }
+
+        .loading-btn {
+            width: 200px;
+            position: absolute;
+            top: calc(50% + 8px); /* Center vertically between the box and the chart */
+            left: calc(50% + 345px);
+            transform: translate(-50%, -50%);
+            background-color: #d22b2b;
+            color: white;
+            font-weight: bold;
+            padding: 15px 20px; /* Adjusted padding for better text fitting */
+            border-radius: 10px;
+            border: none;
+            text-decoration: none;
+        }
+        .loading-btn:hover {
+            background-color: white;
+            color: #d22b2b;
+        }
+
+        .unloading-btn {
+            width: 200px;
+            position: absolute;
+            top: calc(50% + 8px); /* Center vertically between the box and the chart */
+            left: calc(50% + 570px);
+            transform: translate(-50%, -50%);
+            background-color: #d22b2b;
+            color: white;
+            font-weight: bold;
+            padding: 15px 20px; /* Adjusted padding for better text fitting */
+            border-radius: 10px;
+            border: none;
+            text-decoration: none;
+        }
+        .unloading-btn:hover {
+            background-color: white;
+            color: #d22b2b;
+        }
+
+        .total-summary-pair {
+            margin-bottom: 8px; /* Adjust the spacing as needed */
+        }
+    
+        .total-summary-pair:first-child {
+            margin-top: 10px; /* Additional spacing for the last item */
+        }
+        
+    </style>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="navbar-nav">
+            <a href="{% url 'home' %}" class="btn">Dashboard</a>
+            <a href="{% url 'display_data' %}" class="btn">Terminal Data</a>
+            <button id="back-button" class="btn" style="display: none;">Back</button>
+        </div>
+        <div class="filter-container ml-auto">
+            <label for="state-select">Select State:</label>
+            <select id="state-select" class="form-control">
+                <option value="">All States</option>
+                {% for state in states %}
+                    <option value="{{ state }}">{{ state }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </nav>
+    
+    <div class="container map-container">
+        <div id="map"></div>
+        <div id="specific-details" style="display:none;"></div>
+        <div id="pie-chart-container" style="display:flex;"></div>
+        <div id="details-container" style="display: none; flex-direction: column; align-items: center; padding: 0px; background-color: white; border-radius: 15px; margin-top: 40px; width: 315px; height: 260px; color: black; font-weight: bold; text-align: center;">
+            <div id="total-earnings" class="total-summary-pair" style="font-weight: normal;"></div>
+            <div id="total-loading" class="total-summary-pair" style="font-weight: normal;"></div>
+            <div id="total-unloading" class="total-summary-pair" style="font-weight: normal;"></div>
+            <div id="total-terminals" class="total-summary-pair" style="font-weight: normal;"></div>
+        </div>
+        
+        <div id="bar-chart-container" style="display: flex;">
+            <div id="bar-chart"></div>
+        </div>
+        <button id="earnings-button" class="earnings-btn" style="display: inline-block;">Earnings</button>
+        <button id="loading-button" class="loading-btn" style="display: inline-block;">Loading</button>
+        <button id="unloading-button" class="unloading-btn" style="display: inline-block;">Unloading</button>
+    </div>
+    
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+        let stateData = {}; // Declare the stateData variable here
+        let indiaData = {}; // Declare the indiaData variable here
+        google.charts.load('current', {'packages':['corechart']});
+        google.charts.setOnLoadCallback(drawIndiaPieChart);
+
+        function drawIndiaPieChart(pieChartData) {
+            var container = document.getElementById('pie-chart-container');
+            container.innerHTML = ''; // Clear any existing content in the details container
+        
+            // Create a new div for the pie chart
+            var pieChartDiv = document.createElement('div');
+            pieChartDiv.id = 'india-piechart';
+            pieChartDiv.style.width = '100%';
+            pieChartDiv.style.height = '100%'; // Adjust the height as needed
+            container.appendChild(pieChartDiv);
+        
+            var data = google.visualization.arrayToDataTable(pieChartData);
+        
+            var options = {
+                title: 'Distribution of Types of Terminals',
+                titleTextStyle: { 
+                    alignment: 'center',
+                    fontSize: 17,
+                    bold: true,
+                    color: 'black'
+                },
+                backgroundColor: 'white',
+                is3D: true,
+                pieHole: 0.4,
+                colors: ['#d22b2b', '#87CEEB', '#FFA500', '#6495ED', '#32CD32'],
+                legend: { position: 'right', alignment: 'center' },
+                chartArea: { left: '0%', right: '0%', bottom:'0%', width: '80%', height: '80%' },
+                animation: {
+                    startup: true,
+                    duration: 1000,
+                    easing: 'out'
+                }
+            };
+        
+            var chart = new google.visualization.PieChart(pieChartDiv);
+            chart.draw(data, options);
+        }
+        
+        function fetchIndiaData() {
+            var url = "{% url 'get_geojson' %}";
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.india_data) {
+                        indiaData = data.india_data; // Store India data for later use
+                        drawIndiaPieChart(data.india_data.pie_chart_data); // Draw India-specific pie chart
+                        showIndiaChart('earnings'); // Show earnings chart by default for India
+                        updateTotalSummary(data.india_data); // Update the total summary box
+                    }
+                })
+                .catch(error => {
+                    console.error("Error fetching India data:", error);
+                });
+        }
+        
+        
+        function showIndiaChart(chartType) {
+            document.getElementById('bar-chart-container').style.display = 'block';
+            if (chartType === 'earnings') {
+                drawEarningsChart(indiaData.earnings_data); // Draw earnings chart for India
+            } else if (chartType === 'loading') {
+                drawLoadingChart(indiaData.loading_data); // Draw loading chart for India
+            } else if (chartType === 'unloading') {
+                drawUnloadingChart(indiaData.unloading_data); // Draw unloading chart for India
+            }
+        }
+
+        function drawStatePieChart(pieChartData) {
+            var container = document.getElementById('pie-chart-container');
+            container.innerHTML = ''; // Clear any existing content in the details container
+        
+            // Create a new div for the pie chart
+            var pieChartDiv = document.createElement('div');
+            pieChartDiv.id = 'state-piechart';
+            pieChartDiv.style.width = '100%';
+            pieChartDiv.style.height = '100%'; // Adjust the height as needed
+            container.appendChild(pieChartDiv);
+        
+            var data = google.visualization.arrayToDataTable(pieChartData);
+        
+            var options = {
+                title: 'Types of Terminals',
+                title: 'Distribution of Types of Terminals',
+                titleTextStyle: { 
+                    alignment: 'center',
+                    fontSize: 17,
+                    bold: true,
+                    color: 'black'
+                },
+                backgroundColor: 'white',
+                is3D: true,
+                pieHole: 0.4,
+                colors: ['#d22b2b', '#87CEEB', '#FFA500', '#6495ED', '#32CD32'],
+                legend: { position: 'right', alignment: 'center' },
+                chartArea: { left: '0%', right: '0%', bottom:'0%', width: '80%', height: '80%' },
+                animation: {
+                    startup: true,
+                    duration: 1000,
+                    easing: 'out'
+                }
+            };
+        
+            var chart = new google.visualization.PieChart(pieChartDiv);
+            chart.draw(data, options);
+        }
+
+        function fetchStateData(state) {
+            var url = "{% url 'get_geojson' %}" + '?state=' + state.toUpperCase();
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.state_data) {
+                        stateData = data.state_data; // Store state data for later use
+                        drawStatePieChart(data.state_data.pie_chart_data); // Draw state-specific pie chart
+                        showChart('earnings'); // Show earnings chart by default
+                        updateTotalSummary(data.state_data); // Update the total summary box for state
+                    }
+                })
+                .catch(error => {
+                    console.error("Error fetching state data:", error);
+                });
+        }
+        
+        function showChart(chartType) {
+            document.getElementById('bar-chart-container').style.display = 'block';
+            if (Object.keys(stateData).length) {
+                // Show state-specific chart
+                if (chartType === 'earnings') {
+                    drawEarningsChart(stateData.earnings_data);
+                } else if (chartType === 'loading') {
+                    drawLoadingChart(stateData.loading_data);
+                } else if (chartType === 'unloading') {
+                    drawUnloadingChart(stateData.unloading_data);
+                }
+            } else {
+                // Show India-specific chart
+                if (chartType === 'earnings') {
+                    drawEarningsChart(indiaData.earnings_data);
+                } else if (chartType === 'loading') {
+                    drawLoadingChart(indiaData.loading_data);
+                } else if (chartType === 'unloading') {
+                    drawUnloadingChart(indiaData.unloading_data);
+                }
+            }
+        }
+
+        function updateTotalSummary(data) {
+            document.getElementById('total-earnings').innerHTML = `
+                Total Earnings till July 2024:<br><span style="font-weight: bold;">Rs. ${Math.round(data.total_earnings)} Cr</span>`;
+            document.getElementById('total-loading').innerHTML = `
+                Total Loading till July 2024:<br><span style="font-weight: bold;">${Math.round(data.total_loading)} MMT</span>`;
+            document.getElementById('total-unloading').innerHTML = `
+                Total Unloading till July 2024:<br><span style="font-weight: bold;">${Math.round(data.total_unloading)} MMT</span>`;
+            document.getElementById('total-terminals').innerHTML = `
+                No. of Terminals:<br><span style="font-weight: bold;">${data.total_terminals}</span>`;
+            document.getElementById('total-terminals').style.marginTop = '0px'; // Add margin to create space
+            document.getElementById('details-container').style.display = 'flex';
+        }
+        
+        
+        
+        function drawEarningsChart(earningsData) {
+            var container = document.getElementById('bar-chart-container');
+            var chartDiv = document.getElementById('bar-chart');
+        
+            // Clear any existing content in the chart container
+            container.innerHTML = '';
+        
+            // Create a new div for the chart
+            var newChartDiv = document.createElement('div');
+            newChartDiv.id = 'bar-chart';
+            newChartDiv.style.width = '100%';
+            newChartDiv.style.height = '310px';
+            container.appendChild(newChartDiv);
+        
+            // Update the reference to chartDiv
+            chartDiv = newChartDiv;
+        
+            var data = google.visualization.arrayToDataTable(earningsData);
+        
+            var options = {
+                title: 'Terminal Earnings (In Rupees Crore)',
+                bars: 'vertical',
+                vAxis: {
+                    format: 'decimal',
+                    textStyle: { color: 'black', fontSize: 12 },
+                    title: 'Earnings'
+                },
+                hAxis: {
+                    textStyle: { color: 'black', fontSize: 12 }
+                },
+                height: 310,
+                width: '100%',
+                colors: ['#d22b2b', '#6495ED'],
+                animation: {
+                    startup: true,
+                    duration: 1000,
+                    easing: 'out',
+                },
+                bar: { groupWidth: '75%' }, // Adjust the width of bars
+                legend: { position: 'bottom', textStyle: { color: 'black', fontSize: 12 } },
+                chartArea: { width: '80%', height: '70%' }
+            };
+        
+            var chart = new google.visualization.ColumnChart(chartDiv);
+        
+            chart.draw(data, options);
+        }
+        
+        function drawLoadingChart(loadingData) {
+            var container = document.getElementById('bar-chart-container');
+            var chartDiv = document.getElementById('bar-chart');
+        
+            // Clear any existing content in the chart container
+            container.innerHTML = '';
+        
+            // Create a new div for the chart
+            var newChartDiv = document.createElement('div');
+            newChartDiv.id = 'bar-chart';
+            newChartDiv.style.width = '100%';
+            newChartDiv.style.height = '310px';
+            container.appendChild(newChartDiv);
+        
+            // Update the reference to chartDiv
+            chartDiv = newChartDiv;
+        
+            var data = google.visualization.arrayToDataTable(loadingData);
+        
+            var options = {
+                title: 'Terminal Loading (In Million Metric Tons)',
+                bars: 'vertical',
+                vAxis: {
+                    format: 'decimal',
+                    textStyle: { color: 'black', fontSize: 12 },
+                    title: 'Loading'
+                },
+                hAxis: {
+                    textStyle: { color: 'black', fontSize: 12 }
+                },
+                height: 310,
+                width: '100%',
+                colors: ['#d22b2b', '#6495ED'],
+                animation: {
+                    startup: true,
+                    duration: 1000,
+                    easing: 'out',
+                },
+                bar: { groupWidth: '75%' }, // Adjust the width of bars
+                legend: { position: 'bottom', textStyle: { color: 'black', fontSize: 12 } },
+                chartArea: { width: '80%', height: '70%' }
+            };
+        
+            var chart = new google.visualization.ColumnChart(chartDiv);
+        
+            chart.draw(data, options);
+        }
+
+        function drawUnloadingChart(unloadingData) {
+            var container = document.getElementById('bar-chart-container');
+            var chartDiv = document.getElementById('bar-chart');
+        
+            // Clear any existing content in the chart container
+            container.innerHTML = '';
+        
+            // Create a new div for the chart
+            var newChartDiv = document.createElement('div');
+            newChartDiv.id = 'bar-chart';
+            newChartDiv.style.width = '100%';
+            newChartDiv.style.height = '310px';
+            container.appendChild(newChartDiv);
+        
+            // Update the reference to chartDiv
+            chartDiv = newChartDiv;
+        
+            var data = google.visualization.arrayToDataTable(unloadingData);
+        
+            var options = {
+                title: 'Terminal Unloading (In Million Metric Tons)',
+                bars: 'vertical',
+                vAxis: {
+                    format: 'decimal',
+                    textStyle: { color: 'black', fontSize: 12 },
+                    title: 'Unloading'
+                },
+                hAxis: {
+                    textStyle: { color: 'black', fontSize: 12 }
+                },
+                height: 310,
+                width: '100%',
+                colors: ['#d22b2b', '#6495ED'],
+                animation: {
+                    startup: true,
+                    duration: 1000,
+                    easing: 'out',
+                },
+                bar: { groupWidth: '75%' }, // Adjust the width of bars
+                legend: { position: 'bottom', textStyle: { color: 'black', fontSize: 12 } },
+                chartArea: { width: '80%', height: '70%' }
+            };
+        
+            var chart = new google.visualization.ColumnChart(chartDiv);
+        
+            chart.draw(data, options);
+        }
+
+        
+        
+        
+        document.addEventListener('DOMContentLoaded', function () {
+            var stateCoordinates = {
+                'Andhra Pradesh': [15.9129, 80.3500],
+                'Arunachal Pradesh': [28.2180, 94.7278],
+                'Assam': [26.2006, 92.9376],
+                'Bihar': [25.0961, 85.3131],
+                'Chhattisgarh': [21.2787, 81.8661],
+                'Goa': [15.2993, 74.1240],
+                'Gujarat': [22.2587, 71.1924],
+                'Haryana': [29.0588, 76.0856],
+                'Himachal Pradesh': [31.1048, 77.1734],
+                'Jharkhand': [23.6102, 85.2799],
+                'Karnataka': [15.0500, 75.7139],
+                'Kerala': [10.8505, 76.2711],
+                'Madhya Pradesh': [23.7734, 78.6569],
+                'Maharashtra': [18.7515, 76.3139],
+                'Manipur': [24.6637, 93.9063],
+                'Meghalaya': [25.4670, 91.3662],
+                'Mizoram': [23.1645, 92.9376],
+                'Nagaland': [26.1584, 94.5624],
+                'Odisha': [20.9517, 85.0985],
+                'Punjab': [31.1471, 75.3412],
+                'Rajasthan': [26.8238, 74.2179],
+                'Sikkim': [27.5330, 88.5122],
+                'Tamil Nadu': [11.1271, 78.6569],
+                'Telangana': [18.1124, 79.0193],
+                'Tripura': [23.9408, 91.9882],
+                'Uttar Pradesh': [26.8467, 80.5462],
+                'Uttarakhand': [30.0668, 79.0193],
+                'West Bengal': [23.9868, 87.8550],
+                'Delhi': [28.7041, 77.1025],
+                'Jammu And Kashmir': [33.7782, 76.5762],
+                'Ladakh': [34.1526, 77.5771],
+                'Chandigarh': [30.7333, 76.7794],
+                'Puducherry': [10.1416, 79.8083]
+            };
+        
+            var map = L.map('map').setView([21.6429, 82.2191], 5); // Coordinates for India
+
+            map.on('zoomend', function() {
+                if (map.getZoom() > 5) {
+                    document.getElementById('back-button').style.display = 'inline-block';
+                } else {
+                    document.getElementById('back-button').style.display = 'none';
+                }
+            });
+
+        
+            L.tileLayer.wms('https://bhuvan-vec1.nrsc.gov.in/bhuvan/gwc/service/wms/', {layers: 'india3'}).addTo(map);
+
+            var markers = L.markerClusterGroup(); // Initialize the marker cluster group
+        
+            var geojsonLayer;
+            var selectedMarker = null; // Keep track of the selected marker
+        
+            function loadGeoJSON(state) {
+                var url = "{% url 'get_geojson' %}";
+                if (state) {
+                    url += '?state=' + state.toUpperCase();
+                    var coordinates = stateCoordinates[state];
+                    if (coordinates) {
+                        map.setView(coordinates, 7); // Adjusted zoom level for specific states
+                    }
+                } else {
+                    map.setView([21.6429, 82.2191], 5); // Default view for India
+                }
+                fetch(url)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (geojsonLayer) {
+                            map.removeLayer(geojsonLayer);
+                        }
+                        if (markers) {
+                            map.removeLayer(markers);
+                        }
+            
+                        if (state) {
+                            geojsonLayer = L.geoJSON(data, {
+                                pointToLayer: function (feature, latlng) {
+                                    return L.circleMarker(latlng, {
+                                        radius: 6,
+                                        fillColor: "#d22b2b",
+                                        color: "#000",
+                                        weight: 1,
+                                        opacity: 1,
+                                        fillOpacity: 0.7
+                                    });
+                                },
+                                onEachFeature: function (feature, layer) {
+                                    var popupContent = "<b>Terminal Code:</b> " + feature.properties.terminal_code +
+                                                       "<br><b>Division:</b> " + feature.properties.division +
+                                                       "<br><b>Zone:</b> " + feature.properties.zone +
+                                                       "<br><b>District:</b> " + (feature.properties.district ? feature.properties.district.toUpperCase() : "N/A") +
+                                                       "<br><b>State:</b> " + (feature.properties.state ? feature.properties.state.toUpperCase() : "N/A");
+                                    layer.bindPopup(popupContent);
+            
+                                    layer.on('click', function () {
+                                        if (selectedMarker) {
+                                            selectedMarker.setStyle({
+                                                radius: 6,
+                                                fillColor: "#d22b2b"
+                                            });
+                                        }
+                                        selectedMarker = layer;
+                                        layer.setStyle({
+                                            radius: 10,
+                                            fillColor: "#87CEEB"
+                                        });
+            
+                                        fetchTerminalDetails(feature.properties.id);
+                                        document.getElementById('back-button').style.display = 'inline-block';
+                                        document.getElementById('earnings-button').style.display = 'inline-block';
+                                    });
+                                }
+                            }).addTo(map);
+                        } else {
+                            markers = L.markerClusterGroup({
+                                iconCreateFunction: function(cluster) {
+                                    var count = cluster.getChildCount();
+                                    var size = 'small';
+                                    if (count >= 10 && count < 100) {
+                                        size = 'medium';
+                                    } else if (count >= 100) {
+                                        size = 'large';
+                                    }
+                                    var c = ' marker-cluster-';
+                                    if (count < 10) {
+                                        c += 'small';
+                                    } else if (count < 100) {
+                                        c += 'medium';
+                                    } else {
+                                        c += 'large';
+                                    }
+                                    return L.divIcon({
+                                        html: '<div><span style="color: black; font-weight: bold;">' + count + '</span></div>',
+                                        className: 'marker-cluster' + c,
+                                        iconSize: new L.Point(40, 40)
+                                    });
+                                }
+                            });
+                            geojsonLayer = L.geoJSON(data, {
+                                pointToLayer: function (feature, latlng) {
+                                    return L.circleMarker(latlng, {
+                                        radius: 6,
+                                        fillColor: "#d22b2b",
+                                        color: "#000",
+                                        weight: 1,
+                                        opacity: 1,
+                                        fillOpacity: 0.7
+                                    });
+                                },
+                                onEachFeature: function (feature, layer) {
+                                    var popupContent = "<b>Terminal Code:</b> " + feature.properties.terminal_code +
+                                                       "<br><b>Division:</b> " + feature.properties.division +
+                                                       "<br><b>Zone:</b> " + feature.properties.zone +
+                                                       "<br><b>District:</b> " + (feature.properties.district ? feature.properties.district.toUpperCase() : "N/A") +
+                                                       "<br><b>State:</b> " + (feature.properties.state ? feature.properties.state.toUpperCase() : "N/A");
+                                    layer.bindPopup(popupContent);
+            
+                                    layer.on('click', function () {
+                                        if (selectedMarker) {
+                                            selectedMarker.setStyle({
+                                                radius: 6,
+                                                fillColor: "#d22b2b"
+                                            });
+                                        }
+                                        selectedMarker = layer;
+                                        layer.setStyle({
+                                            radius: 10,
+                                            fillColor: "#87CEEB"
+                                        });
+            
+                                        fetchTerminalDetails(feature.properties.id);
+                                        document.getElementById('back-button').style.display = 'inline-block';
+                                        document.getElementById('earnings-button').style.display = 'inline-block';
+                                    });
+                                }
+                            });
+                            markers.addLayer(geojsonLayer);
+                            markers.on('clusterclick', function () {
+                                document.getElementById('back-button').style.display = 'inline-block';
+                            });
+                            map.addLayer(markers);
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error fetching GeoJSON data:", error);
+                    });
+            }
+            
+            
+            
+            function fetchTerminalDetails(station_code) {
+                fetch(`/get_terminal_details/${station_code}/`)
+                    .then(response => response.json())
+                    .then(terminal => {
+                        var detailsDiv = document.getElementById('specific-details');
+                        detailsDiv.innerHTML = '';
+                        var detailContent = `
+                            <div class="terminal-name-box"><b>Terminal Name:</b> ${terminal.station_name}</div>
+                            <div class="specific-detail-box"><b>Working Hours:</b> ${(terminal.working_hours_from && terminal.working_hours_to) ? `${terminal.working_hours_from} - ${terminal.working_hours_to}` : "N/A"}</div>
+                            <div class="specific-detail-box"><b>Terminal Type:</b> ${terminal.terminal_type}</div>
+                            <div class="specific-detail-box"><b>Avg Rakes Handling:</b> ${terminal.avg_rakes_handling}</div>
+                            <div class="specific-detail-box"><b>Line Count:</b> ${terminal.line_count}</div>
+                            <div class="specific-detail-box"><b>Handling Type:</b> ${terminal.handling_type}</div>
+                            <div class="specific-detail-box"><b>Warehouse Available:</b> ${terminal.warehouse_available_yes_no}</div>
+                            <div class="specific-detail-box"><b>Owner:</b> ${terminal.owner}</div>
+                            <div class="specific-detail-box"><b>Associated Weighbridge:</b> ${terminal.associated_weighbridge || "N/A"}</div>
+                            <div class="specific-detail-box"><b>Alternate Weighbridge:</b> ${terminal.alternate_weighbridge || "N/A"}</div>
+                            <div class="specific-detail-box"><b>Tank Handling:</b> ${terminal.tank_handling_yes_no}</div>
+                        `;
+                        detailsDiv.innerHTML = detailContent;
+                        detailsDiv.style.display = 'flex';
+            
+                        if (terminal.earnings_data) {
+                            stateData = { // Update stateData with terminal-specific data
+                                earnings_data: terminal.earnings_data,
+                                loading_data: terminal.loading_data,
+                                unloading_data: terminal.unloading_data
+                            };
+                            showChart('earnings'); // Show earnings chart by default
+                        }
+            
+                        document.getElementById('specific-details').style.display = 'flex';
+                        document.getElementById('pie-chart-container').style.display = 'none';
+                        document.getElementById('details-container').style.display = 'none';
+                        document.getElementById('earnings-button').style.display = 'inline-block';
+                        document.getElementById('loading-button').style.display = 'inline-block';
+                        document.getElementById('unloading-button').style.display = 'inline-block';
+                    })
+                    .catch(error => {
+                        console.error("Error fetching terminal details:", error);
+                    });
+            }
+            
+            
+            loadGeoJSON(); // Load all states initially
+            document.getElementById('specific-details').style.display = 'none';
+            document.getElementById('pie-chart-container').style.display = 'flex';
+            document.getElementById('details-container').style.display = 'flex';
+            document.getElementById('bar-chart-container').style.display = 'block';
+            document.getElementById('earnings-button').style.display = 'inline-block';
+            document.getElementById('loading-button').style.display = 'inline-block';
+            document.getElementById('unloading-button').style.display = 'inline-block';
+            fetchIndiaData();
+        
+            document.getElementById('state-select').addEventListener('change', function () {
+                var selectedState = this.value;
+                if (selectedState === "") {
+                    document.getElementById('specific-details').style.display = 'none';
+                    document.getElementById('pie-chart-container').style.display = 'flex';
+                    document.getElementById('details-container').style.display = 'flex'; // Show total summary for all states
+                    stateData = {}; // Reset stateData when no specific state is selected
+                    loadGeoJSON(null); // Call with null to reset view to India with clustering
+                    fetchIndiaData(); // Fetch India-specific data
+                    document.getElementById('back-button').style.display = 'none';
+                } else {
+                    document.getElementById('specific-details').style.display = 'none';
+                    document.getElementById('pie-chart-container').style.display = 'flex';
+                    document.getElementById('details-container').style.display = 'flex'; // Hide total summary for specific states
+                    document.getElementById('back-button').style.display = 'inline-block';
+                    loadGeoJSON(selectedState); // Load GeoJSON without clustering for the selected state
+                    fetchStateData(selectedState); // Fetch state-specific data
+                }
+            });
+                
+            
+            document.getElementById('back-button').addEventListener('click', function () {
+                document.getElementById('state-select').value = "";
+                document.getElementById('specific-details').style.display = 'none';
+                document.getElementById('pie-chart-container').style.display = 'flex';
+                document.getElementById('details-container').style.display = 'flex';
+                stateData = {}; // Reset stateData when switching back to India view
+                loadGeoJSON(null); // Reset view to India
+                fetchIndiaData(); // Fetch India-specific data
+                document.getElementById('back-button').style.display = 'none';
+            });
+        
+            document.getElementById('earnings-button').addEventListener('click', function () {
+                showChart('earnings');
+            });
+        
+            document.getElementById('loading-button').addEventListener('click', function () {
+                showChart('loading');
+            });
+        
+            document.getElementById('unloading-button').addEventListener('click', function () {
+                showChart('unloading');
+            });
+            
+            
+            document.addEventListener('click', function (event) {
+                if (event.target.classList.contains('view-detail')) {
+                    event.preventDefault();
+                    var terminalId = event.target.getAttribute('data-terminal-id');
+                    fetchTerminalDetails(terminalId);
+                }
+            });
+        
+            function displayTerminalDetails(terminal) {
+                var detailsDiv = document.getElementById('specific-details');
+                detailsDiv.innerHTML = ''; // Clear previous details
+                var detailContent = `
+                    <div class="terminal-name-box"><b>Terminal Name:</b> ${terminal.terminal_name}</div>
+                    <div class="specific-detail-box"><b>Working Hours:</b> ${(terminal.working_hours_from && terminal.working_hours_to) ? `${terminal.working_hours_from} - ${terminal.working_hours_to}` : "N/A"}</div>
+                    <div class="specific-detail-box"><b>Terminal Type:</b> ${terminal.terminal_type}</div>
+                    <div class="specific-detail-box"><b>Avg Rakes Handling:</b> ${terminal.avg_rakes_handling}</div>
+                    <div class="specific-detail-box"><b>Line Count:</b> ${terminal.line_count}</div>
+                    <div class="specific-detail-box"><b>Handling Type:</b> ${terminal.handling_type}</div>
+                    <div class="specific-detail-box"><b>Warehouse Available:</b> ${terminal.warehouse_available_yes_no === 'Y' ? 'Yes' : 'No'}</div>
+                    <div class="specific-detail-box"><b>Owner:</b> ${terminal.owner}</div>
+                    <div class="specific-detail-box"><b>Associated Weighbridge:</b> ${terminal.associated_weighbridge || "N/A"}</div>
+                    <div class="specific-detail-box"><b>Alternate Weighbridge:</b> ${terminal.alternate_weighbridge || "N/A"}</div>
+                    <div class="specific-detail-box"><b>Tank Handling:</b> ${terminal.tank_handling_yes_no === 'Y' ? 'Yes' : 'No'}</div>
+                `;
+                detailsDiv.innerHTML = detailContent;
+                detailsDiv.style.display = 'block';
+            }
+        });
+        
+    </script>
+</body>
+</html>

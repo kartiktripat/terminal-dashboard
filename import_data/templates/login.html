@@ -1,0 +1,87 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #6495ed;
+            background-image: url("{% static 'Indian-Railways2.jpg' %}");
+            background-size: cover;
+            background-blend-mode: multiply;
+            color: white;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            position: relative; /* Positioning for pseudo-element */
+            overflow: hidden; /* Ensure child elements stay within the body */
+        }
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0 ,0 ,0 , 0.7); /* 50% transparent blue layer */
+            z-index: 1; /* Ensure it appears on top of the background image */
+        }
+        .content {
+            position: relative; /* Ensure content is above the overlay */
+            z-index: 2; /* Above the pseudo-element */
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Center content horizontally */
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+        }
+        .login-form {
+            width: 300px;
+        }
+        .form-control {
+            margin-bottom: 15px;
+        }
+        .btn-custom {
+            font-size: 1.2em;
+            padding: 10px 20px;
+            background-color: #d22b2b; /* Button background color */
+            color: white; /* Button text color */
+            font-weight: bold; /* Bold text */
+            border: none; /* Remove borders */
+            border-radius: 10px; /* Rounded corners for buttons */
+            text-align: center; /* Center the text */
+            vertical-align: middle; /* Vertically align the text */
+            box-shadow: none; /* Remove any box shadow */
+        }
+        .btn-custom:hover {
+            background-color: white; /* Slightly different color on hover */
+            color: #d22b2b; /* Text color on hover */
+        }
+    </style>
+</head>
+<body>
+    <div class="content">
+        <h2>Login</h2>
+        <form method="post" action="{% url 'login' %}" class="login-form">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" class="form-control">
+            </div>
+            <button type="submit" class="btn btn-custom">Login</button>
+            {% if error %}
+                <p style="color: red;">{{ error }}</p>
+            {% endif %}
+        </form>
+    </div>
+</body>
+</html>
