@@ -17,6 +17,8 @@ This project is a Django-based web application that connects to a PostgreSQL dat
 - HTML/CSS
 - JavaScript
 - Bootstrap (optional for styling)
+- Leaflet.js
+- Geographic Information System (GIS)
 
 ## Setup
 
