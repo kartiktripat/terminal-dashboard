@@ -9,6 +9,8 @@ This project is a Django-based web application that connects to a PostgreSQL dat
 - User authentication and authorization
 - Responsive web design
 
+## Webpages
+
 ## Technologies Used
 
 - Python
