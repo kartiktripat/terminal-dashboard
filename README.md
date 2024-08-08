@@ -13,6 +13,34 @@ This project is a Django-based web application that connects to a PostgreSQL dat
 
 ### Login Screen
 
+![Login Screen](screenshots/login.png)
+
+### Home Screen
+
+![Home Screen](screenshots/home.png)
+
+### Terminal Data
+
+![Terminal Data](screenshots/terminal.png)
+
+### State Specific Data
+
+![State Specific Data](screenshots/state_specific_data.png)
+
+### India Data
+
+![India Data](screenshots/india.png)
+
+### State Data
+
+![State Data](screenshots/state.png)
+
+
+
+### Terminal Data Graph
+
+![Terminal Data Graph](screenshots/terminal_data.png)
+
 
 
 ## Technologies Used
